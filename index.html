@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload .docx File</title>
+</head>
+<body>
+  <h2>Upload .docx File</h2>
+  <input type="file" id="uploadInput" accept=".docx" />
+  <button onclick="uploadDocx()">Upload</button>
+
+  <p id="status"></p>
+
+  <h2>Download PDF</h2>
+  <input type="text" id="filenameInput" placeholder="Enter uploaded filename.docx" />
+  <button onclick="downloadPdf()">Download PDF</button>
+
+  <script>
+    async function uploadDocx() {
+      const fileInput = document.getElementById('uploadInput');
+      const status = document.getElementById('status');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        status.textContent = 'Please select a .docx file to upload.';
+        return;
+      }
+
+      try {
+        status.textContent = 'Requesting upload URL...';
+
+        // Step 1: Get pre-signed URL from your ALB + Lambda
+        const response = await fetch(`http://alb-lambda-tg-2002193034.us-east-1.elb.amazonaws.com/generate-presigned-url?filename=${encodeURIComponent(file.name)}`);
+        if (!response.ok) throw new Error('Failed to get pre-signed URL');
+
+        const data = await response.json();
+        const uploadUrl = data.presignedUrl;
+
+        status.textContent = 'Uploading file to S3...';
+
+        // Step 2: Upload the file to S3
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          },
+          body: file
+        });
+
+        if (!uploadResponse.ok) throw new Error('Upload failed');
+
+        status.textContent = 'Upload successful!';
+      } catch (error) {
+        status.textContent = 'Error: ' + error.message;
+      }
+    }
+async function downloadPdf() {
+  const filename = document.getElementById('filenameInput').value;
+  const downloadUrl = `http://alb-lambda-tg-2002193034.us-east-1.elb.amazonaws.com/download?filename=${encodeURIComponent(filename)}`;
+
+  try {
+    const response = await fetch(downloadUrl);
+    if (!response.ok) throw new Error('Download failed');
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename.replace('.docx', '.pdf');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+  </script>
+</body>
+</html>

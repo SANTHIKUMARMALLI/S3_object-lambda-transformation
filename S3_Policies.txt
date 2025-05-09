@@ -1,0 +1,73 @@
+S3 BUKCET CORS :
+
+[
+    {
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "PUT"
+        ],
+        "AllowedOrigins": [
+            "*"
+        ],
+        "ExposeHeaders": [],
+        "MaxAgeSeconds": 3000
+    }
+]
+
+S3 BUCKET POLICY:
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:PutObject",
+                "S3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::s3-today-30.04/*"
+        }
+    ]
+}
+
+S3 ACCESS POINT POLICY:
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowObjectLambdaReadAccess",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "s3-object-lambda.amazonaws.com"
+            },
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:us-east-1:512672395252:accesspoint/s3-docx-pdf/object/*"
+        }
+    ]
+}
+
+S3 OBJECT LAMBDA ACCESS POINT POLICY:
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::512672395252:role/service-role/lambda-proxy-role-joo0j0zw",
+                    "arn:aws:iam::512672395252:role/service-role/lambda-docx-to-pdf-role-agipeea6"
+                ]
+            },
+            "Action": "s3-object-lambda:GetObject",
+            "Resource": "arn:aws:s3-object-lambda:us-east-1:512672395252:accesspoint/s3-object-lambda-docx-pdf"
+        }
+    ]
+}
+
+
+

@@ -1,0 +1,136 @@
+IAM POLICIES AND PERMISSIONS FOR THE LAMBDA FUNCTIONS:
+
+LAMBDA PRE SIGNED ROLE POLICY:
+
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": "logs:CreateLogGroup",
+			"Resource": "arn:aws:logs:us-east-1:512672395252:*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": [
+				"arn:aws:logs:us-east-1:512672395252:log-group:/aws/lambda/lambda-presigned-url-upload:*"
+			]
+		},
+		{
+			"Effect": "Allow",
+			"Action": "s3:PutObject",
+			"Resource": "arn:aws:s3:::s3-today-30.04/*"
+		},
+		{
+			"Sid": "allowalb",
+			"Effect": "Allow",
+			"Action": "lambda:InvokeFunction",
+			"Resource": "arn:aws:lambda:us-east-1:512672395252:function:lambda-presigned-url-upload",
+			"Condition": {
+				"ArnLike": {
+					"AWS:SourceArn": "arn:aws:elasticloadbalancing:us-east-1:512672395252:loadbalancer/app/alb-lambda-tg/742517c23125212d"
+				}
+			}
+		}
+	]
+}
+
+
+LAMBDA PROXY ROLE POLICY:
+
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": "logs:CreateLogGroup",
+			"Resource": "arn:aws:logs:us-east-1:512672395252:*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": [
+				"arn:aws:logs:us-east-1:512672395252:log-group:/aws/lambda/lambda-proxy:*"
+			]
+		},
+		{
+			"Sid": "AllowSignedGetToObjectLambda",
+			"Effect": "Allow",
+			"Action": [
+				"s3-object-lambda:GetObject"
+			],
+			"Resource": "arn:aws:s3-object-lambda:us-east-1:512672395252:accesspoint/s3-object-lambda-docx-pdf"
+		},
+		{
+			"Sid": "allowalb",
+			"Effect": "Allow",
+			"Action": "lambda:InvokeFunction",
+			"Resource": "arn:aws:lambda:us-east-1:512672395252:function:lambda-proxy",
+			"Condition": {
+				"ArnLike": {
+					"AWS:SourceArn": "arn:aws:elasticloadbalancing:us-east-1:512672395252:loadbalancer/app/alb-lambda-tg/742517c23125212d"
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": "lambda:InvokeFunction",
+			"Resource": "arn:aws:lambda:us-east-1:512672395252:function:lambda-docx-to-pdf"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:ListBucket"
+			],
+			"Resource": [
+				"arn:aws:s3:us-east-1:512672395252:accesspoint/s3-docx-pdf",
+				"arn:aws:s3:us-east-1:512672395252:accesspoint/s3-docx-pdf/object/*"
+			]
+		}
+	]
+}
+
+
+LAMBDA TRANSFORMATION ROLE POLICY:
+
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": "logs:CreateLogGroup",
+			"Resource": "arn:aws:logs:us-east-1:512672395252:*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": [
+				"arn:aws:logs:us-east-1:512672395252:log-group:/aws/lambda/lambda-docx-to-pdf:*"
+			]
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3-object-lambda:WriteGetObjectResponse",
+				"s3:GetObject"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "s3-object-lambda:GetObject",
+			"Resource": "arn:aws:s3-object-lambda:us-east-1:512672395252:accesspoint/s3-object-lambda-docx-pdf"
+		}
+	]
+}
